@@ -46,25 +46,30 @@ function loginUsuarios(req, res) {
 //GESTION DE PRODUCTOS
 
 function agregarProductos(req, res) {
-  let params = req.body;
   let categoriaID = req.params.categoriaID;
+  let params = req.body;
   if (req.usuario.rol === "Administrador") {
     if (params.nombre && params.cantidad && params.precio) {
-      productosModel.nombre = params.nombre;
-      productosModel.cantidad = params.cantidad;
-      productosModel.precio = params.precio;
-      productosModel.categoria = categoriaID;
-      productosModel.save((err, productosAgregados) => {
-        if (err)
-          return res
-            .status(500)
-            .send({ mensaje: "Error interno en agregar productos" });
-        if (!productosAgregados) {
-          return res
-            .status(500)
-            .send({ mensaje: "Error al agregar productos" });
-        } else {
-          return res.status(200).send({ productosAgregados });
+      Categorias.findById(categoriaID, (err, categoriaEncontrada) => {
+        if (err) return res.status(500).send({ mensaje: "Error interno" });
+        if (!categoriaEncontrada)
+          return res.status(500).send({ mensaje: "No se encontro categoria" });
+        if (categoriaEncontrada) {
+          productosModel.nombre = params.nombre;
+          productosModel.cantidad = params.cantidad;
+          productosModel.precio = params.precio;
+          productosModel.categoria = categoriaID;
+          productosModel.save((err, productosAgregados) => {
+            if (err)
+              return res
+                .status(500)
+                .send({ mensaje: "Error interno en agregar productos" });
+            if (!productosAgregados)
+              return res
+                .status(500)
+                .send({ mensaje: "Error al agregar productos" });
+            return res.status(200).send({ productosAgregados });
+          });
         }
       });
     } else {
@@ -99,29 +104,22 @@ function editarProductos(req, res) {
   let productoID = req.params.productoID;
   let params = req.body;
   if ((req.usuario.rol = "Administrador")) {
-    Productos.findOne({ nombre: params.nombre }, (err, productoEncontrado) => {
-      if (err) return res.status(500).send({ mensaje: "Error interno" });
-      if (productoEncontrado) {
-        return res.status(500).send({ mensaje: "El producto ya existe" });
-      } else {
-        Productos.findByIdAndUpdate(
-          { _id: productoID },
-          params,
-          { new: true },
-          (err, productoEditado) => {
-            if (err)
-              return res
-                .status(500)
-                .send({ mensaje: "Error interno al actualizar productos" });
-            if (productoEditado) {
-              return res.status(200).send({ productoEditado });
-            } else {
-              return res.status(500).send({ mensaje: "El producto no existe" });
-            }
-          }
-        );
+    Productos.findByIdAndUpdate(
+      { _id: productoID },
+      params,
+      { new: true },
+      (err, productoEditado) => {
+        if (err)
+          return res
+            .status(500)
+            .send({ mensaje: "Error interno al actualizar productos" });
+        if (productoEditado) {
+          return res.status(200).send({ productoEditado });
+        } else {
+          return res.status(500).send({ mensaje: "El producto no existe" });
+        }
       }
-    });
+    );
   } else {
     return res.status(500).send({ mensaje: "Usted no es administrador" });
   }
@@ -334,7 +332,7 @@ function eliminarUsuarios(req, res) {
         return res
           .status(500)
           .send({ mensaje: "Error al verificar usuario a eliminar" });
-      if (usuarioVerificar.rol === "Administrador") {
+      if (usuarioVerificar.rol !== "Administrador") {
         Usuarios.findByIdAndDelete(usuarioID, (err, usuarioEliminado) => {
           if (err) return res.status(500).send({ mensaje: "Error interno" });
           if (!usuarioEliminado)

@@ -7,17 +7,12 @@ const Categorias = require("../models/categorias.model");
 function buscarProductos(req, res) {
   let params = req.body;
   if (req.usuario.rol === "Cliente") {
-    Productos.find(
-      { nombre: { $regex: params.nombre, $options: "i" } },
-      (err, productoEncontrado) => {
-        if (err) return res.status(500).send({ mensaje: "Error interno" });
-        if (!productoEncontrado)
-          return res
-            .status(500)
-            .send({ mensaje: "Error al obtener productos" });
-        return res.status(200).send({ productoEncontrado });
-      }
-    );
+    Productos.findOne({ nombre: params.nombre }, (err, productoEncontrado) => {
+      if (err) return res.status(500).send({ mensaje: "Error interno" });
+      if (!productoEncontrado)
+        return res.status(500).send({ mensaje: "Error al obtener productos" });
+      return res.status(200).send({ productoEncontrado });
+    });
   } else {
     return res.status(500).send({ mensaje: "Usted no es un cliente" });
   }
