@@ -36,9 +36,4 @@ ventas.post(
   verification.ensureAuth,
   clientesCotroller.agregarCarrito
 );
-ventas.post(
-  "/comprar/:carritoID",
-  verification.ensureAuth,
-  clientesCotroller.compras
-);
 module.exports = ventas;

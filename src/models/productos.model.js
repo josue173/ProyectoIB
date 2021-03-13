@@ -8,6 +8,7 @@ var productosScheman = Schema({
   cantidad: Number,
   precio: Number,
   categoria: { type: Schema.Types.ObjectId, ref: "categorias" },
+  ventas: Number,
 });
 
 module.exports = mongoose.model("productos", productosScheman);

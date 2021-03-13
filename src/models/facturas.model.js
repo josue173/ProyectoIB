@@ -4,7 +4,8 @@ const mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 
 var facturaSchema = Schema({
-  carrito: { type: Schema.Types.ObjectId, ref: "carrito" },
+  nombre: String,
+  producto: String,
   total: Number,
 });
 

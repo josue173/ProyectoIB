@@ -3,13 +3,6 @@
 const Usuarios = require("../models/usuarios.model");
 const Productos = require("../models/productos.model");
 const Categorias = require("../models/categorias.model");
-const Carrito = require("../models/carrito.model");
-const carritoModel = new Carrito();
-
-function productosMasVendidos(req, res) {
-  if (req.usuario.rol === "Cliente") {
-  }
-}
 
 function buscarProductos(req, res) {
   let params = req.body;
@@ -64,7 +57,6 @@ function agregarCarrito(req, res) {
   let clienteID = req.params.clienteID;
   let productoID = req.params.productoID;
   let params = req.body;
-  let subTotal = null;
   carritoModel.productos = productoID;
   carritoModel.cantidad = params.cantidad;
   carritoModel.cliente = clienteID;
@@ -80,17 +72,6 @@ function agregarCarrito(req, res) {
         if (!carritoAgregado) {
           return res.status(500).send({ mensaje: "Error al agregar carrito" });
         } else {
-          Productos.findById(productoID, (err, productoEncontrado) => {
-            if (err) return res.status(500).send({ mensaje: "Error interno" });
-            if (!productoEncontrado)
-              return res
-                .status(500)
-                .send({ mensaje: "Error al buscar producto" });
-            if (productoEncontrado) {
-              subTotal = productoEncontrado.precio * params.cantidad;
-              carritoModel.subTotal = subTotal;
-            }
-          });
           return res.status(200).send({ carritoAgregado });
         }
       });
@@ -99,21 +80,6 @@ function agregarCarrito(req, res) {
         .status(500)
         .send({ mensaje: "Debe llenar los campos de productos y cantidad" });
     }
-  }
-}
-
-function compras(req, res) {
-  let carritoID = req.params.carritoID;
-  if (req.usuario.rol === "Administrador") {
-    return res.status(500).send({ mensaje: "Usted no es cliente" });
-  } else {
-    Carrito.findById(carritoID, (err, carritoEncontrado) => {
-      if (err) return res.status(500).send({ mensaje: "Error interno" });
-      if (!carritoEncontrado)
-        return res.status(500).send({ mensaje: "Error al obtener carrito" });
-      if (carritoEncontrado) {
-      }
-    });
   }
 }
 
@@ -179,5 +145,4 @@ module.exports = {
   editarPerfil,
   eliminarPerfil,
   agregarCarrito,
-  compras,
 };

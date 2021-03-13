@@ -10,13 +10,3 @@ var usuariosSchema = Schema({
 });
 
 module.exports = mongoose.model("usuarios", usuariosSchema);
-
-/*
-  carrito: [
-    {
-      productos: [],
-      cantidad: Number,
-      IDcliente: { type: Schema.Types.ObjectId, ref: "Usuarios" },
-    },
-  ],
-*/

@@ -3,11 +3,14 @@
 const Usuarios = require("../models/usuarios.model");
 const Productos = require("../models/productos.model");
 const Categorias = require("../models/categorias.model");
+const Carrito = require("../models/carrito.model");
+const Factura = require("../models/facturas.model");
 const bcrypt = require("bcrypt-nodejs");
 const jwt = require("../services/jwt");
 const usuariosModel = new Usuarios();
 var productosModel = new Productos();
 var categoriasModel = new Categorias();
+var facturaModel = new Factura();
 
 function loginUsuarios(req, res) {
   let params = req.body;
@@ -354,10 +357,85 @@ function eliminarUsuarios(req, res) {
 
 //GESTION DE FACTURAS
 
-function facturas(req, res) {
-  let usuarioID = req.params.usuarioID;
-  let params = req.body;
+function facutura(req, res) {
+  let carritoID = req.params.carritoID;
+  if (req.usuario.rol === "Cliente") {
+    return res.status(500).send({ mensaje: "Usted no es administrador" });
+  } else {
+    Carrito.findById(carritoID, (err, carritoEncontrado) => {
+      if (err) return res.status(500).send({ mensaje: "Error interno" });
+      if (!carritoEncontrado)
+        return res.status(500).send({ mensaje: "Error al obtener carrito" });
+      if (carritoEncontrado) {
+        Usuarios.find(
+          { _id: carritoEncontrado.cliente },
+          (err, clienteEncontrado) => {
+            if (err)
+              return res
+                .status(500)
+                .send({ menubar: "Error interno en buscar cliente" });
+            if (!clienteEncontrado)
+              return res
+                .status(500)
+                .send({ menubar: "Error al buscar cliente" });
+            if (clienteEncontrado._id === carritoEncontrado.cliente) {
+              Productos.find(
+                { _id: carritoEncontrado.productos },
+                (err, productoEncontrado) => {
+                  if (err)
+                    return res
+                      .status(500)
+                      .send({ mensaje: "Error interno en buscar producto" });
+                  if (!productoEncontrado)
+                    return res
+                      .status(500)
+                      .send({ mensaje: "Error al buscar prodcuto" });
+                  if (productoEncontrado) {
+                    if (
+                      carritoEncontrado.cantidad > productoEncontrado.cantidad
+                    ) {
+                      return res.status(500).send({
+                        mensaje: "La cantidad del carrito execede la del stock",
+                      });
+                    } else {
+                      facturaModel.nombre = clienteEncontrado.nombre;
+                      facturaModel.producto = productoEncontrado.nombre;
+                      facturaModel.total =
+                        parseFloat(carritoEncontrado.cantidad) *
+                        parseFloat(productoEncontrado.precio);
+                      facturaModel.save((err, facturaGuardada) => {
+                        if (err)
+                          return res
+                            .status(500)
+                            .send({ mensaje: "Error interno" });
+                        if (!facturaGuardada)
+                          return res
+                            .status(500)
+                            .send({ mensaje: "Error al guardar la factrua" });
+                        return res.status(200).send(facturaGuardada);
+                      });
+                    }
+                  }
+                }
+              );
+            } else {
+              return res.status(500).send({ mensaje: "No hay coincidencias" });
+            }
+          }
+        );
+      }
+    });
+  }
+}
+
+function verFactura(req, res) {
   if (req.usuario.rol === "Administrador") {
+    Factura.find((err, facturasEncontradas) => {
+      if (err) return res.status(500).send({ mensaje: "Error interno" });
+      if (!facturasEncontradas)
+        return res.status(500).send({ mensaje: "No hay facturas" });
+      return res.status(500).send({ facturasEncontradas });
+    });
   } else {
     return res.status(500).send({ mensaje: "Usted no es administrador" });
   }
@@ -376,4 +454,6 @@ module.exports = {
   registroUsuarios,
   editarUsuario,
   eliminarUsuarios,
+  facutura,
+  verFactura,
 };

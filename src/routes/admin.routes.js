@@ -62,4 +62,10 @@ ventas.delete(
   verification.ensureAuth,
   adminController.eliminarUsuarios
 );
+ventas.post(
+  "/facutura/:carritoID",
+  verification.ensureAuth,
+  adminController.facutura
+);
+ventas.get("/verFacturas", verification.ensureAuth, adminController.verFactura);
 module.exports = ventas;
